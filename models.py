@@ -21,7 +21,7 @@ from keras.models import Model
 from keras.layers import Input, Embedding, SpatialDropout1D, Dropout, Conv1D, MaxPool1D, Flatten, concatenate, Dense, \
     LSTM, Bidirectional, Activation, MaxPooling1D, Add, GRU, GlobalAveragePooling1D, GlobalMaxPooling1D, RepeatVector, \
     TimeDistributed, Permute, multiply, Lambda, add, Masking, BatchNormalization, Softmax, Reshape, ReLU, \
-    ZeroPadding1D, subtract
+    ZeroPadding1D, subtract, CuDNNLSTM
 from keras.preprocessing.sequence import pad_sequences
 from keras.utils import to_categorical
 from keras.callbacks import Callback, ModelCheckpoint, EarlyStopping
@@ -31,7 +31,6 @@ import tensorflow as tf
 from custom_layers import Attention, RecurrentAttention, InteractiveAttention, ContentAttention, ELMoEmbedding
 from utils import get_score_senti
 from data_loader import load_idx2token
-
 
 # callback for sentiment analysis model
 class SentiModelMetrics(Callback):
@@ -62,6 +61,7 @@ class SentiModelMetrics(Callback):
 # model for sentiment analysis
 class SentimentModel(object):
     def __init__(self, config):
+        self.is_cudnn = False
         self.config = config
         self.level = self.config.level
         self.use_elmo = self.config.use_elmo
@@ -278,8 +278,14 @@ class SentimentModel(object):
             input_r_embed = SpatialDropout1D(0.2)(word_embedding(input_r))
 
         # regarding aspect string as the last unit
-        hidden_l = LSTM(self.config.lstm_units)(input_l_embed)
-        hidden_r = LSTM(self.config.lstm_units, go_backwards=True)(input_r_embed)
+        if(self.is_cudnn):
+            hidden_l = CuDNNLSTM(self.config.lstm_units)(input_l_embed)
+        else:
+            hidden_l = LSTM(self.config.lstm_units)(input_l_embed)
+        if(self.is_cudnn):
+            hidden_r = CuDNNLSTM(self.config.lstm_units, go_backwards=True)(input_r_embed)
+        else:
+            hidden_r = LSTM(self.config.lstm_units, go_backwards=True)(input_r_embed)
 
         hidden_concat = concatenate([hidden_l, hidden_r], axis=-1)
 
@@ -330,8 +336,14 @@ class SentimentModel(object):
         input_r_concat = concatenate([input_r_embed, aspect_repeat_r], axis=-1)
 
         # regarding aspect string as the last unit
-        hidden_l = LSTM(self.config.lstm_units)(input_l_concat)
-        hidden_r = LSTM(self.config.lstm_units, go_backwards=True)(input_r_concat)
+        if(self.is_cudnn):
+            hidden_l = CuDNNLSTM(self.config.lstm_units)(input_l_concat)
+        else:
+            hidden_l = LSTM(self.config.lstm_units)(input_l_concat)
+        if(self.is_cudnn):
+            hidden_r = CuDNNLSTM(self.config.lstm_units, go_backwards=True)(input_r_concat)
+        else:
+            hidden_r = LSTM(self.config.lstm_units, go_backwards=True)(input_r_concat)
 
         hidden_concat = concatenate([hidden_l, hidden_r], axis=-1)
 
@@ -371,7 +383,10 @@ class SentimentModel(object):
         repeat_aspect = RepeatVector(self.max_len)(aspect_embed)  # repeat aspect for every word in sequence
 
         input_concat = concatenate([text_embed, repeat_aspect], axis=-1)
-        hidden = LSTM(self.config.lstm_units)(input_concat)
+        if(self.is_cudnn):
+            hidden = CuDNNLSTM(self.config.lstm_units)(input_concat)
+        else:
+            hidden = LSTM(self.config.lstm_units)(input_concat)
 
         return Model([input_text, input_aspect], hidden)
 
@@ -439,8 +454,10 @@ class SentimentModel(object):
         aspect_embed = asp_embedding(input_aspect)
         aspect_embed = Flatten()(aspect_embed)  # reshape to 2d
         repeat_aspect = RepeatVector(self.max_len)(aspect_embed)  # repeat aspect for every word in sequence
-
-        hidden_vecs = LSTM(self.config.lstm_units, return_sequences=True)(text_embed)  # hidden vectors output by lstm
+        if(self.is_cudnn):
+            hidden_vecs = CuDNNLSTM(self.config.lstm_units, return_sequences=True)(text_embed)  # hidden vectors output by lstm
+        else:
+            hidden_vecs = LSTM(self.config.lstm_units, return_sequences=True)(text_embed)  # hidden vectors output by lstm
         concat = concatenate([hidden_vecs, repeat_aspect], axis=-1)  # mask after concatenate will be same as hidden_out's mask
 
         # apply attention mechanism
@@ -484,7 +501,10 @@ class SentimentModel(object):
         repeat_aspect = RepeatVector(self.max_len)(aspect_embed)  # repeat aspect for every word in sequence
 
         input_concat = concatenate([text_embed, repeat_aspect], axis=-1)
-        hidden_vecs, state_h, _ = LSTM(self.config.lstm_units, return_sequences=True, return_state=True)(input_concat)
+        if(self.is_cudnn):
+            hidden_vecs, state_h, _ = CuDNNLSTM(self.config.lstm_units, return_sequences=True, return_state=True)(input_concat)
+        else:
+            hidden_vecs, state_h, _ = LSTM(self.config.lstm_units, return_sequences=True, return_state=True)(input_concat)
         concat = concatenate([hidden_vecs, repeat_aspect], axis=-1)
 
         # apply attention mechanism
@@ -596,8 +616,12 @@ class SentimentModel(object):
         aspect_embed = Flatten()(aspect_embed)  # reshape to 2d
 
         # memory module
-        hidden_out_1 = Bidirectional(LSTM(self.config.lstm_units, return_sequences=True))(text_embed)
-        memory = Bidirectional(LSTM(self.config.lstm_units, return_sequences=True))(hidden_out_1)
+        if(self.is_cudnn):
+            hidden_out_1 = Bidirectional(CuDNNLSTM(self.config.lstm_units, return_sequences=True))(text_embed)
+            memory = Bidirectional(CuDNNLSTM(self.config.lstm_units, return_sequences=True))(hidden_out_1)
+        else:
+            hidden_out_1 = Bidirectional(LSTM(self.config.lstm_units, return_sequences=True))(text_embed)
+            memory = Bidirectional(LSTM(self.config.lstm_units, return_sequences=True))(hidden_out_1)
 
         # position-weighted memory module
         if self.config.use_loc_input:
@@ -660,9 +684,12 @@ class SentimentModel(object):
                                            trainable=self.config.word_embed_trainable,
                                            mask_zero=True)
             asp_text_embed = SpatialDropout1D(0.2)(asp_text_embedding(input_aspect_text))
-
-        hidden_text = LSTM(self.config.lstm_units, return_sequences=True)(text_embed)
-        hidden_asp_text = LSTM(self.config.lstm_units, return_sequences=True)(asp_text_embed)
+        if(self.is_cudnn):
+            hidden_text = CuDNNLSTM(self.config.lstm_units, return_sequences=True)(text_embed)
+            hidden_asp_text = CuDNNLSTM(self.config.lstm_units, return_sequences=True)(asp_text_embed)
+        else:
+            hidden_text = LSTM(self.config.lstm_units, return_sequences=True)(text_embed)
+            hidden_asp_text = LSTM(self.config.lstm_units, return_sequences=True)(asp_text_embed)
 
         attend_concat = InteractiveAttention()([hidden_text, hidden_asp_text])
 

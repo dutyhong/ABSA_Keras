@@ -21,7 +21,7 @@ from data_loader import load_input_data, load_label
 from models import SentimentModel
 from utils import pickle_load
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '3'
 
 
 def train_model(data_folder, data_name, level, model_name, is_aspect_term=True):
@@ -86,9 +86,9 @@ def train_model(data_folder, data_name, level, model_name, is_aspect_term=True):
 
 if __name__ == '__main__':
     config = Config()
-    config.use_emlo = True
+    config.use_emlo = False
     config.use_elmo_alone = False
-    config.elmo_trainable = True
+    config.elmo_trainable = False
 
     # config.word_embed_trainable = True
     # config.aspect_embed_trainable = True
@@ -154,35 +154,36 @@ if __name__ == '__main__':
     # train_model('twitter', 'twitter', 'word', 'ian')
     # train_model('twitter', 'twitter', 'word', 'cabasc')
 
-    config.word_embed_trainable = False
-    config.aspect_embed_trainable = False
-    train_model('laptop/term', 'laptop', 'word', 'td_lstm')
-    train_model('laptop/term', 'laptop', 'word', 'tc_lstm')
-    train_model('laptop/term', 'laptop', 'word', 'ae_lstm')
-    train_model('laptop/term', 'laptop', 'word', 'at_lstm')
+    config.word_embed_trainable = True
+    config.aspect_embed_trainable = True
+    print("开始训练。。。。。。。")
+    # train_model('laptop/term', 'laptop', 'word', 'td_lstm')
+    # train_model('laptop/term', 'laptop', 'word', 'tc_lstm')
+    # train_model('laptop/term', 'laptop', 'word', 'ae_lstm')
+    # train_model('laptop/term', 'laptop', 'word', 'at_lstm')
     train_model('laptop/term', 'laptop', 'word', 'atae_lstm')
-    train_model('laptop/term', 'laptop', 'word', 'memnet')
-    train_model('laptop/term', 'laptop', 'word', 'ram')
-    train_model('laptop/term', 'laptop', 'word', 'ian')
+    # train_model('laptop/term', 'laptop', 'word', 'memnet')
+    # train_model('laptop/term', 'laptop', 'word', 'ram')
+    # train_model('laptop/term', 'laptop', 'word', 'ian')
     # train_model('laptop/term', 'laptop', 'word', 'cabasc')
 
-    train_model('restaurant/term', 'restaurant', 'word', 'td_lstm')
-    train_model('restaurant/term', 'restaurant', 'word', 'tc_lstm')
-    train_model('restaurant/term', 'restaurant', 'word', 'ae_lstm')
-    train_model('restaurant/term', 'restaurant', 'word', 'at_lstm')
-    train_model('restaurant/term', 'restaurant', 'word', 'atae_lstm')
-    train_model('restaurant/term', 'restaurant', 'word', 'memnet')
-    train_model('restaurant/term', 'restaurant', 'word', 'ram')
-    train_model('restaurant/term', 'restaurant', 'word', 'ian')
+    # train_model('restaurant/term', 'restaurant', 'word', 'td_lstm')
+    # train_model('restaurant/term', 'restaurant', 'word', 'tc_lstm')
+    # train_model('restaurant/term', 'restaurant', 'word', 'ae_lstm')
+    # train_model('restaurant/term', 'restaurant', 'word', 'at_lstm')
+    # train_model('restaurant/term', 'restaurant', 'word', 'atae_lstm')
+    # train_model('restaurant/term', 'restaurant', 'word', 'memnet')
+    # train_model('restaurant/term', 'restaurant', 'word', 'ram')
+    # train_model('restaurant/term', 'restaurant', 'word', 'ian')
     # train_model('restaurant/term', 'restaurant', 'word', 'cabasc')
 
-    train_model('twitter', 'twitter', 'word', 'td_lstm')
-    train_model('twitter', 'twitter', 'word', 'tc_lstm')
-    train_model('twitter', 'twitter', 'word', 'ae_lstm')
-    train_model('twitter', 'twitter', 'word', 'at_lstm')
-    train_model('twitter', 'twitter', 'word', 'atae_lstm')
-    train_model('twitter', 'twitter', 'word', 'memnet')
-    train_model('twitter', 'twitter', 'word', 'ram')
-    train_model('twitter', 'twitter', 'word', 'ian')
+    # train_model('twitter', 'twitter', 'word', 'td_lstm')
+    # train_model('twitter', 'twitter', 'word', 'tc_lstm')
+    # train_model('twitter', 'twitter', 'word', 'ae_lstm')
+    # train_model('twitter', 'twitter', 'word', 'at_lstm')
+    # train_model('twitter', 'twitter', 'word', 'atae_lstm')
+    # train_model('twitter', 'twitter', 'word', 'memnet')
+    # train_model('twitter', 'twitter', 'word', 'ram')
+    # train_model('twitter', 'twitter', 'word', 'ian')
     # train_model('twitter', 'twitter', 'word', 'cabasc')
 

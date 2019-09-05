@@ -475,7 +475,7 @@ class ELMoEmbedding(Layer):
             self.lookup_table.init.run(session=K.get_session())
 
         print('Logging Info - Loading elmo from tensorflow hub....')
-        self.elmo = hub.Module(self.hub_url, trainable=self.elmo_trainable, name="{}_elmo_hub".format(self.name))
+        # self.elmo = hub.Module(self.hub_url, trainable=self.elmo_trainable, name="{}_elmo_hub".format(self.name))
 
         if self.elmo_trainable:
             print('Logging Info - ELMo model trainable')

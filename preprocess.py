@@ -14,6 +14,8 @@
 
 """
 import os
+import pickle
+
 import nltk
 import numpy as np
 import pandas as pd
@@ -222,6 +224,7 @@ def pre_process(file_folder, word_cut_func, is_en):
     word_vocab = build_vocabulary(word_corpus, start_id=1)
     char_vocab = build_vocabulary(char_corpus, start_id=1)
     aspect_vocab = build_vocabulary(aspect_corpus, start_id=0)
+    ##aspect_vocab 和aspect_text_vocab是不一样的，前者是词的id，后者是字的id
     aspect_text_word_vocab = build_vocabulary(aspect_text_word_corpus, start_id=1)
     aspect_text_char_vocab = build_vocabulary(aspect_text_char_corpus, start_id=1)
     pickle_dump(word_vocab, os.path.join(file_folder, 'word_vocab.pkl'))
@@ -427,11 +430,18 @@ def pre_process(file_folder, word_cut_func, is_en):
 
 
 if __name__ == '__main__':
+    path = './data/laptop/term/train_word_input.pkl'
+    with open(path, 'rb') as file:
+        file_data = pickle.load(file)
+    train_path = './data/laptop/term/train_label.pkl'
+    with open(train_path, 'rb') as file:
+        label_file_data = pickle.load(file)
     config = Config()
-    glove_model = KeyedVectors.load_word2vec_format('./raw_data/glove.42B.300d.txt', binary=False)
-    glove_weights = glove_model.wv.syn0
-    glove_d = dict([(k, v.index) for k, v in glove_model.wv.vocab.items()])
-
+    # glove_model = KeyedVectors.load_word2vec_format('./raw_data/glove.840B.300d.txt', binary=False)
+    # dist = glove_model.distance('没有', '没')
+    # glove_weights = glove_model.wv.syn0
+    # glove_d = dict([(k, v.index) for k, v in glove_model.wv.vocab.items()])
+    print("加载词典结束。。。。。。。。。。")
     pre_process('./data/laptop/term', lambda x: nltk.word_tokenize(x), True)
     pre_process('./data/restaurant/term', lambda x: nltk.word_tokenize(x), True)
     pre_process('./data/restaurant/category', lambda x: nltk.word_tokenize(x), True)
