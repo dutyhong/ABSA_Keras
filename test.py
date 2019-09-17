@@ -12,8 +12,15 @@
 #     input_data.append(pickle_load(os.path.join("./data/laptop/term/train_char_input.pkl")))
 # print("dd")
 
+sen = '"我们都会恨死你,"'
+sen = sen.lstrip()
+sen =sen.rstrip()
+sen = sen.replace('\"', '')
+sen = sen.replace(',', '，')
+import numpy as np
+aspect_embeddings = np.load('./data/twitter/aspect_char_w2v.npy')
 from keras.models import Input, Model
-from keras.layers import Dense, Conv2D, TimeDistributed
+from keras.layers import Dense, Conv2D, TimeDistributed, np
 # from keras.utils import plot_model
 from keras.utils import plot_model
 

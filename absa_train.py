@@ -23,9 +23,11 @@ def category_process(x):
 train_data = pd.read_csv('absa_train_data.csv', header=0, index_col=None)
 train_data['content_char_list'] = train_data['Reviews'].apply(lambda x: list(x))
 char_vocab = pickle.load(open("./absa_data/content_char_corpus.pkl","rb"))
+aspect_term_vocab = pickle.load(open("./absa_data/aspect_term_corpus.pkl", "rb"))
+aspect_char_vocab = pickle.load(open("./abas_data/aspect_char_corpus.pkl", "rb"))
+
 train_char_input = train_data['content_char_list'].apply(
         lambda x: [char_vocab.get(char, len(char_vocab)+1) for char in x]).values.tolist()
-aspect_term_vocab = pickle.load(open("./absa_data/aspect_term_corpus.pkl", "rb"))
 train_aspect_input = train_data["Categories"].apply(lambda x: [aspect_term_vocab[x]]).values.tolist()
 train_label = train_data['Polarities'].apply(category_process).values.tolist()
 ##读取验证集

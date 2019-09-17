@@ -8,4 +8,5 @@ class Config(object):
         self.lstm_units = 32
         self.is_cudnn = False
         self.dense_units = 64
-        self.n_classes = 3
+        self.n_classes = 33
+        self.aspect_max_len = 10
